@@ -3,7 +3,7 @@ executor: slurm
 default-resources:
   - mem_mb=4000
   - runtime=60
-  - slurm_account=def-nessrobe_cpu
+  - slurm_account="def-nessrobe_cpu" 
 latency-wait: 60
 jobs: 300
 retries: 1
