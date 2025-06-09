@@ -8,6 +8,7 @@ latency-wait: 60
 jobs: 300
 retries: 1
 local-cores: 1
+max-jobs-per-timespan: "60/1m"
 scheduler: greedy
-max-jobs-per-second: 1
+# max-jobs-per-second: 1
 max-status-checks-per-second: 1
