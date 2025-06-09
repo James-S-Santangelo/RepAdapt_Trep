@@ -1,0 +1,10 @@
+# Input files
+samples: ../resources/repadapt_trep_sample_sheet.txt
+chromosomes: ../resources/chromosome_file.txt
+bam_path: /home/santang3/projects/def-johnso73/data/bam/TrR_v6_dovetail/
+ref: /home/santang3/projects/def-johnso73/reference_assemblies/UTM_Trep_v1.0_haploid_reference_softMasked.fasta
+repadapt_prefix: rawg0003_trifolium_repens_santangelo  # Prefix added to beginning of all outputs
+
+# Output
+results_prefix: /home/santang3/scratch/repadapt_trep/results
+log_prefix: /home/santang3/scratch/repadapt_trep/logs
