@@ -1,0 +1,260 @@
+################################
+#### SAF AND SFS ESTIMATION ####
+################################
+
+rule angsd_saf_likelihood_byPopulation:
+    """
+    Generate Site Allele Frequency (SAF) likelihood file for each population using ANGSD. 
+    """
+    input:
+        bams = rules.create_bam_list_by_city_and_population.output, 
+        ref = rules.copy_ref.output,
+        ref_idx = rules.samtools_index_ref.output
+    output:
+        saf = f'{ANGSD_DIR}/saf/{{city}}/{{population}}/{PREFIX}_{{city}}_{{population}}_{{chrom}}.saf.gz',
+        saf_idx = f'{ANGSD_DIR}/saf/{{city}}/{{population}}/{PREFIX}_{{city}}_{{population}}_{{chrom}}.saf.idx',
+        saf_pos = f'{ANGSD_DIR}/saf/{{city}}/{{population}}/{PREFIX}_{{city}}_{{population}}_{{chrom}}.saf.pos.gz'
+    log: f'{LOG_DIR}/angsd_saf_likelihood_byPopulation/{{city}}/{{city}}_{{population}}_{{chrom}}_saf.log'
+    container: 'library://james-s-santangelo/angsd/angsd:0.938'
+    params:
+        out = f'{ANGSD_DIR}/saf/{{city}}/{{population}}/{PREFIX}_{{city}}_{{population}}_{{chrom}}'
+    threads: 6
+    resources:
+        mem_mb = lambda wildcards, attempt: attempt * 10000,
+        runtime = lambda wildcards, attempt: attempt * 180
+    shell:
+        """
+        angsd -GL 1 \
+            -out {params.out} \
+            -nThreads {threads} \
+            -doMajorMinor 4 \
+            -baq 2 \
+            -ref {input.ref} \
+            -minQ 30 \
+            -minMapQ 30 \
+            -doSaf 1 \
+            -anc {input.ref} \
+            -r {wildcards.chrom} \
+            -bam {input.bams} 2> {log}
+        """
+
+ANGSD_SAF_TARGET_FILES = []
+for city, pop in zip(CITIES, POPULATIONS):
+    for chrom in CHROMOSOMES:
+        saf = f'{ANGSD_DIR}/saf/{city}/{pop}/{PREFIX}_{city}_{pop}_{chrom}.saf.gz'
+        ANGSD_SAF_TARGET_FILES.append(saf)
+        saf_idx = f'{ANGSD_DIR}/saf/{city}/{pop}/{PREFIX}_{city}_{pop}_{chrom}.saf.idx'
+        ANGSD_SAF_TARGET_FILES.append(saf_idx)
+        saf_log = f'{ANGSD_DIR}/saf/{city}/{pop}/{PREFIX}_{city}_{pop}_{chrom}.saf.gz'
+        ANGSD_SAF_TARGET_FILES.append(saf_log)
+ 
+rule angsd_estimate_joint_population_sfs:
+    """
+    Estimated folded, two-dimensional SFS for each urban-rural population pairs using realSFS
+    """
+    input:
+        safs = get_population_saf_files
+    output:
+        f'{ANGSD_DIR}/sfs/2dsfs/{{city}}/{{chrom}}/{PREFIX}_{{city}}_{{pop_comb}}_{{chrom}}.2dsfs'
+    log: f'{LOG_DIR}/angsd_estimate_joint_population_sfs/{{city}}_{{pop_comb}}_{{chrom}}.log'
+    container: 'library://james-s-santangelo/angsd/angsd:0.938'
+    threads: 12
+    resources:
+        mem_mb = 3000,
+        runtime = lambda wildcards, attempt: attempt * 360 
+    shell:
+        """
+        realSFS {input.safs} \
+            -tole 1e-6 \
+            -maxIter 30000 \
+            -seed 42 \
+            -fold 1 \
+            -P {threads} > {output} 2> {log}
+        """
+
+rule angsd_estimate_sfs_byPopulation:
+    """
+    Estimate folded SFS separately for each population (i.e., 1D SFS) using realSFS. 
+    """
+    input:
+        saf = rules.angsd_saf_likelihood_byPopulation.output.saf_idx
+    output:
+        f'{ANGSD_DIR}/sfs/1dsfs/{{city}}/{{population}}/{PREFIX}_{{city}}_{{population}}_{{chrom}}.sfs'
+    log: f'{LOG_DIR}/angsd_estimate_sfs_byPopulation/{{city}}_{{population}}_{{chrom}}_1dsfs.log'
+    container: 'library://james-s-santangelo/angsd/angsd:0.938'
+    threads: 6
+    resources:
+        mem_mb = 2000,
+        runtime = lambda wildcards, attempt:  attempt * 180 
+    shell:
+        """
+        realSFS {input.saf} \
+            -P {threads} \
+            -tole 1e-6 \
+            -fold 1 \
+            -maxIter 30000 \
+            -seed 42 > {output} 2> {log}
+        """
+
+########################
+### FST AND THETAS #####
+########################
+
+rule angsd_population_fst_index:
+    """
+    Estimate per-site alphas (numerator) and betas (denominator) for Fst estimation
+    """
+    input: 
+        saf_idx = get_population_saf_files,
+        joint_sfs = rules.angsd_estimate_joint_population_sfs.output
+    output:
+        fst = f'{ANGSD_DIR}/summary_stats/fst/{{city}}/{PREFIX}_{{city}}_{{pop_comb}}_{{chrom}}.fst.gz',
+        idx = f'{ANGSD_DIR}/summary_stats/fst/{{city}}/{PREFIX}_{{city}}_{{pop_comb}}_{{chrom}}.fst.idx'
+    log: f'{LOG_DIR}/angsd_habitat_fst_index/{{city}}_{{pop_comb}}_{{chrom}}_index.log'
+    container: 'library://james-s-santangelo/angsd/angsd:0.938'
+    threads: 4
+    resources:
+        mem_mb = 4000,
+        runtime = 120
+    params:
+        fstout = f'{ANGSD_DIR}/summary_stats/fst/{{city}}/{PREFIX}_{{city}}_{{pop_comb}}_{{chrom}}'
+    shell:
+        """
+        realSFS fst index {input.saf_idx} \
+            -sfs {input.joint_sfs} \
+            -fold 1 \
+            -P {threads} \
+            -fstout {params.fstout} 2> {log}
+        """
+
+rule angsd_fst_readable:
+    """
+    Create readable Fst files. Required due to format of realSFS fst index output files. 
+    """
+    input:
+        rules.angsd_population_fst_index.output.idx
+    output:
+        f'{ANGSD_DIR}/summary_stats/fst/{{city}}/{PREFIX}_{{city}}_{{pop_comb}}_{{chrom}}_readable.fst'
+    log: f'{LOG_DIR}/angsd_fst_allSites_readable/{{city}}_{{pop_comb}}_{{chrom}}_readable_fst.log'
+    container: 'library://james-s-santangelo/angsd/angsd:0.938'
+    shell:
+        """
+        realSFS fst print {input} > {output} 2> {log}
+        """
+
+rule angsd_estimate_thetas_byPopulation:
+    """
+    Generate per-site thetas in each habitat from 1DSFS
+    """
+    input:
+        saf_idx = rules.angsd_saf_likelihood_byPopulation.output.saf_idx,
+        sfs = rules.angsd_estimate_sfs_byPopulation.output
+    output:
+        idx = f'{ANGSD_DIR}/summary_stats/thetas/{{city}}/{PREFIX}_{{city}}_{{population}}_{{chrom}}.thetas.idx',
+        thet = f'{ANGSD_DIR}/summary_stats/thetas/{{chrom}}/{PREFIX}_{{city}}_{{population}}_{{chrom}}.thetas.gz'
+    log: f'{LOG_DIR}/angsd_estimate_thetas_byPopulation/{{city}}_{{population}}_{{chrom}}_thetas.log'
+    container: 'library://james-s-santangelo/angsd/angsd:0.938'
+    threads: 4
+    params:
+        out = f'{ANGSD_DIR}/summary_stats/thetas/{{chrom}}/{PREFIX}_{{city}}_{{population}}_{{chrom}}'
+    resources:
+        mem_mb = lambda wildcards, attempt: attempt * 4000,
+        runtime = 60
+    shell:
+        """
+        realSFS saf2theta {input.saf_idx} \
+            -P {threads} \
+            -fold 1 \
+            -sfs {input.sfs} \
+            -outname {params.out} 2> {log}
+        """
+
+rule angsd_thetas_readable:
+    """
+    Create readable Fst files. Required due to format of realSFS fst index output files. 
+    """
+    input:
+        rules.angsd_estimate_thetas_byPopulation.output.idx
+    output:
+        f'{ANGSD_DIR}/summary_stats/thetas/{{city}}/{PREFIX}_{{city}}_{{population}}_{{chrom}}_readable.thetas'
+    log: f'{LOG_DIR}/angsd_thetas_allSites_readable/{{city}}_{{population}}_{{chrom}}_readable_thetas.log'
+    container: 'library://james-s-santangelo/angsd/angsd:0.938'
+    shell:
+        """
+        thetaStat print {input} > {output} 2> {log}
+        """
+
+###########################
+### WINDOWED ANALYSES #####
+###########################
+
+rule windowed_theta:
+    input:
+        rules.angsd_estimate_thetas_byPopulation.output.idx
+    output:
+        f"{ANGSD_DIR}/summary_stats/thetas/{{city}}/{PREFIX}_{{city}}_{{population}}_{{chrom}}_windowedThetas.gz.pestPG"
+    log: f'{LOG_DIR}/windowed_theta/{{city}}_{{population}}_{{chrom}}_windowTheta.log'
+    container: 'library://james-s-santangelo/angsd/angsd:0.938'
+    params:
+        out = f"{ANGSD_DIR}/summary_stats/thetas/{{city}}/{PREFIX}_{{city}}_{{population}}_{{chrom}}_windowedThetas.gz",
+        win = 20000,
+        step = 20000
+    resources:
+        mem_mb = lambda wildcards, attempt: attempt * 4000,
+        runtime = 60
+    shell:
+        """
+        thetaStat do_stat {input} -win {params.win} -step {params.step} -outnames {params.out} 2> {log}
+        """
+
+rule windowed_fst:
+    input:
+        rules.angsd_population_fst_index.output.idx
+    output:
+        f"{ANGSD_DIR}/summary_stats/fst/{{city}}/{PREFIX}_{{city}}_{{pop_comb}}_{{chrom}}_windowed.fst"
+    log: f'{LOG_DIR}/windowed_fst/{{city}}_{{pop_comb}}_{{chrom}}_windowedFst.log'
+    container: 'library://james-s-santangelo/angsd/angsd:0.938'
+    params:
+        win = 20000,
+        step = 20000
+    resources:
+        mem_mb = lambda wildcards, attempt: attempt * 4000,
+        runtime = 60
+    shell:
+        """
+        realSFS fst stats2 {input} -win {params.win} -step {params.step} > {output} 2> {log}
+        """
+
+ANGSD_FST_FILES = []
+for city, pop_comb in zip(CITIES_POP_COMB_LIST, POP_COMBS_LIST):
+    for chrom in CHROMOSOMES:
+        fst = f"{ANGSD_DIR}/summary_stats/fst/{city}/{PREFIX}_{city}_{pop_comb}_{chrom}_windowed.fst"
+        ANGSD_FST_FILES.append(fst)
+
+ANGSD_THETA_FILES = []
+for city, pop_comb in zip(CITIES, POPULATIONS):
+    for chrom in CHROMOSOMES:
+        thetas = f"{ANGSD_DIR}/summary_stats/thetas/{city}/{PREFIX}_{city}_{pop}_{chrom}_windowedThetas.gz.pestPG"
+        ANGSD_THETA_FILES.append(thetas)
+
+##############
+#### POST ####
+##############
+
+rule angsd_sweeps_fst_thetas_done:
+    """
+    Generate empty flag file signalling successful completion of SFS and summary stat for habitats
+    """
+    input:
+        ANGSD_THETA_FILES,
+        ANGSD_FST_FILES 
+        # expand(rules.windowed_fst.output, pop_comb=POP_COMBS, chrom=CHROMOSOMES[0]), 
+        # expand(rules.windowed_theta.output, population=POPULATIONS, chrom=CHROMOSOMES[0]),
+        # expand(rules.angsd_fst_readable.output, pop_comb=POP_COMBS, chrom=CHROMOSOMES[0]), 
+        # expand(rules.angsd_thetas_readable.output, population=POPULATIONS, chrom=CHROMOSOMES[0]) 
+    output:
+        f'{ANGSD_DIR}/angsd_sweeps_fst_thetas.done'
+    shell:
+        """
+        touch {output}
+        """

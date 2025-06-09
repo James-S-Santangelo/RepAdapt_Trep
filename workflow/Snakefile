@@ -1,0 +1,116 @@
+import os
+import glob
+import itertools
+import re
+import pandas as pd
+from snakemake.utils import min_version
+
+min_version("8.30.0")
+
+######################
+#### INPUT FILES ####
+#####################
+
+# Samples and chromosomes as list
+BAM_PATH = config['bam_path']
+CHROMOSOMES = pd.read_table(config['chromosomes'], header=None).iloc[:,0].tolist()
+
+# Reference genome
+REFERENCE_GENOME = config['ref']
+
+# Prefix
+PREFIX = config['repadapt_prefix']
+
+######################
+#### OUTPUT PATHS ####
+######################
+
+# Paths for output files
+LOG_DIR = config['log_prefix']
+REF_DIR = f"{config['results_prefix']}/ref"
+PROGRAM_RESOURCE_DIR = f"{config['results_prefix']}/program_resources"
+ANGSD_DIR = f"{config['results_prefix']}/angsd"
+
+###################
+#### WILDCARDS ####
+###################
+
+# Extract samples, cities, and populations as lists from sample sheet
+SAMPLES = pd.read_table(config['samples'])['sample'].unique().tolist()
+CITIES = pd.read_table(config['samples'])['city']
+POPULATIONS = pd.read_table(config['samples'])['pop']
+HABITATS = pd.read_table(config['samples'])['site']
+
+# Create list of city-population-habitat combinations for generating wildcards in pipeline
+zipped_cities_pops = zip(CITIES, POPULATIONS, HABITATS)
+zipped_cities_pops_no_dupes = []
+for city_pop in zipped_cities_pops:
+    if not city_pop in zipped_cities_pops_no_dupes:
+        zipped_cities_pops_no_dupes.append(city_pop)
+
+CITIES_POP_DICT = { f'{city}' : {'urban' : [], 'rural' : []} for city in CITIES } 
+
+# Extract lists for use as wildcards, preserving city-pop order
+CITIES = [x[0] for x in zipped_cities_pops_no_dupes]
+POPULATIONS = [str(x[1]) for x in zipped_cities_pops_no_dupes]
+HABITATS = [x[2] for x in zipped_cities_pops_no_dupes]
+
+for i, city in enumerate(CITIES):
+    if HABITATS[i] == "urban":
+        CITIES_POP_DICT[city]['urban'].append(POPULATIONS[i])
+    else:
+        CITIES_POP_DICT[city]['rural'].append(POPULATIONS[i])
+
+# print(CITIES_POP_DICT)
+
+POPULATION_POP_COMBS_DICT = { f'{city}' : [] for city in CITIES }
+for city in list(set(CITIES)):
+    urban_pops = CITIES_POP_DICT[city]['urban']
+    rural_pops = CITIES_POP_DICT[city]['rural']
+    pop_combs = []
+    for upop in urban_pops:
+        for rpop in rural_pops:
+            pop_combs.append(f'{upop}_{rpop}')
+    POPULATION_POP_COMBS_DICT[city] = pop_combs
+
+# print(POPULATION_POP_COMBS_DICT)
+
+CITIES_POP_COMB_LIST = []
+POP_COMBS_LIST = []
+for city, pop_combs in POPULATION_POP_COMBS_DICT.items():
+    for pc in pop_combs:
+        CITIES_POP_COMB_LIST.append(city)
+        POP_COMBS_LIST.append(pc)
+# print(CITIES_POP_COMB_LIST)
+# print(POP_COMBS_LIST)
+
+wildcard_constraints:
+    chrom='|'.join([x for x in CHROMOSOMES]),
+    sample='|'.join([x for x in SAMPLES]),
+    city='|'.join([x for x in CITIES]),
+    POPULATIONS ='|'.join([x for x in POPULATIONS])
+
+###############
+#### RULES ####
+###############
+
+localrules: 
+    copy_ref,
+    samtools_index_ref,
+    create_bam_list_all_samples,
+    create_bam_list_by_city_and_population,
+    create_sites_file,
+    index_snps,
+    angsd_sweeps_fst_thetas_done,
+    angsd_gea_allele_frequencies_done
+
+include: 'rules/common.smk'
+
+rule all:
+   input:
+        f'{ANGSD_DIR}/angsd_gea_allele_frequencies.done',
+        f'{ANGSD_DIR}/angsd_sweeps_fst_thetas.done',
+
+include: 'rules/ref.smk'
+include: 'rules/angsd_gea_allele_frequencies.smk'
+include: 'rules/angsd_sweeps_fst_thetas.smk'
