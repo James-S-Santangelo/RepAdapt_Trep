@@ -61,7 +61,7 @@ for i, city in enumerate(CITIES):
     else:
         CITIES_POP_DICT[city]['rural'].append(POPULATIONS[i])
 
-# print(CITIES_POP_DICT)
+print(CITIES_POP_DICT)
 
 POPULATION_POP_COMBS_DICT = { f'{city}' : [] for city in CITIES }
 for city in list(set(CITIES)):

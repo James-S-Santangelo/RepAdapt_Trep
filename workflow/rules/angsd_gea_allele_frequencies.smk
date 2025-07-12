@@ -60,8 +60,8 @@ rule angsd_snps_allSamples:
         out = f'{ANGSD_DIR}/snps/allSamples/{{chrom}}/{PREFIX}_{{chrom}}_allSamples_snps'
     threads: 4
     resources:
-        mem_mb = lambda wildcards, attempt: attempt * 24000,
-        runtime = 1440
+        mem_mb = lambda wildcards, attempt: attempt * 72000,
+        runtime = 2160
     shell:
         """
         angsd -GL 1 \

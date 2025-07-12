@@ -60,7 +60,7 @@ rule angsd_estimate_joint_population_sfs:
     container: 'library://james-s-santangelo/angsd/angsd:0.938'
     threads: 12
     resources:
-        mem_mb = 3000,
+        mem_mb = lambda wildcards, attempt: attempt * 6000,
         runtime = lambda wildcards, attempt: attempt * 360 
     shell:
         """
@@ -232,7 +232,7 @@ for city, pop_comb in zip(CITIES_POP_COMB_LIST, POP_COMBS_LIST):
         ANGSD_FST_FILES.append(fst)
 
 ANGSD_THETA_FILES = []
-for city, pop_comb in zip(CITIES, POPULATIONS):
+for city, pop in zip(CITIES, POPULATIONS):
     for chrom in CHROMOSOMES:
         thetas = f"{ANGSD_DIR}/summary_stats/thetas/{city}/{PREFIX}_{city}_{pop}_{chrom}_windowedThetas.gz.pestPG"
         ANGSD_THETA_FILES.append(thetas)
