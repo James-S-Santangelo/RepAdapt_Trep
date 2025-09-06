@@ -1,0 +1,24 @@
+all
+angsd_alleleCounts_freq_byPopulation (Estimate allele counts and frequencies of SNPs in each population)
+angsd_estimate_joint_population_sfs_random100Mb (Estimated folded, two-dimensional SFS for each urban-rural population pair using randomly-selected
+    sites.)
+angsd_estimate_sfs_byPopulation_random100Mb (Estimate folded SFS separately for each population (i.e., 1D SFS) using realSFS with randomly-selected sites)
+angsd_estimate_thetas_byPopulation (Generate per-site thetas in each habitat from 1DSFS)
+angsd_fst_readable (Create readable Fst files. Required due to format of realSFS fst index output files.)
+angsd_gea_allele_frequencies_done
+angsd_index_random100Mb_sites (Index randomly-selected sites for use with ANGSD)
+angsd_population_fst_index (Estimate per-site alphas (numerator) and betas (denominator) for Fst estimation)
+angsd_saf_likelihood_byPopulation (Generate Site Allele Frequency (SAF) likelihood file for each population using ANGSD.)
+angsd_saf_random100Mb_byPopulation (Estimate population-level SAFs for randomly-selected sites)
+angsd_snps_allSamples (Identify SNPs across all samples using ANGSD)
+angsd_sweeps_fst_thetas_done (Generate empty flag file signalling successful completion of SFS and summary stat for habitats)
+angsd_thetas_readable (Create readable Fst files. Required due to format of realSFS fst index output files.)
+copy_ref (Copy reference genome to different directory)
+create_bam_list_all_samples (Create text file with paths to BAMS for all samples)
+create_bam_list_by_city_and_population (Create text file with paths to BAMS for each population in each city)
+create_sites_file (Create position file of ngsParalog)
+index_snps (Index SNPs sites files for ANGSD)
+samtools_index_ref (Index reference with Samtools)
+select_random100Mb_sites (Randomly select sites from across the genome for building SFS priors)
+windowed_fst
+windowed_theta

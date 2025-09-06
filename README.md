@@ -2,6 +2,23 @@
 
 ### Description of repository
 
+#### Outputs from this pipeline
+
+This pipeline analyses 1,992 white clover (_Trifolium repens_) samples from 
+26 cities around the world. From each city, we sampled between 5 and 10 plants 
+(mean = 8.66) from each of 1 to 5 urban and rural populations (mean = 4.42). 
+This pipeline includes the following analysis steps:
+
+1. Estimate allele frequencies at SNPs across all 1,992 samples
+2. For each SNP in (1), re-estimate allele counts and frequencies in each population
+of each city independently. 
+3. For population from every city, estimate pi, Waterson's theta, and Tajima's D in 
+20 Kb windows across the genome.
+4. For each city, estimate pairwise urban-rural Hudson's Fst in 20 Kb windows across
+the genome. Done for all pairwise urban-rural population combinations. 
+
+#### General pipeline overview
+
 See the [Rulegraph](./workflow/rulegraph.pdf) for the dependency graph of rules
 included in this workflow. This is helpful for knowing the order in which rules are
 run in case you want to transform the pipeline into shell scripts rather than
@@ -44,26 +61,13 @@ A detailed description of required input files, etc. can be found below.
   scripts, notebooks, and cluster profiles for running the pipeline on Compute
   Canada SLURM-based clusters.
 
+
 ### Using the pipeline
 
 This pipeline assumes that reads have already been aligned to a reference
 genome and that you have the resulting BAM files. These can be generated using
 scripts 01 to 05b from the [RepAdapt mpileup SNP calling
 pipeline](https://github.com/pbattlay/RepAdapt/tree/main/snp_calling_pipeline/mpileup_pipeline).
-Once you have bams, you need to create text files with the BAMs for each
-population, and one for all samplesi, and place these in
-[./resources/bam_lists](./resources/bam_lists). This can be done as follows:
-
-`find /path/to/bams -name '*<population>*.bam >
-resources/bam_lists/<population>_bams.txt`
-
-where <population> represents the population for which you are creating the bam
-lists. For the all samples list, simply find all bam files (i.e., `-name
-'*.bam'`).
-
-In addition to the bam lists, the pipeline requires a sample sheet that map
-samples to populations, and a text file with the chromosomes for
-parallelization. 
 
 Finally, [./config/server.yaml](./config/server.yaml) should be updated to reflect
 the paths to files on your machine (e.g., reference genome, etc.).

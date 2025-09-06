@@ -49,6 +49,9 @@ for city, pop in zip(CITIES, POPULATIONS):
         ANGSD_SAF_TARGET_FILES.append(saf_log)
 
 rule select_random100Mb_sites:
+    """
+    Randomly select sites from across the genome for building SFS priors
+    """
     input:
         rules.samtools_index_ref.output
     output:
@@ -91,6 +94,9 @@ rule select_random100Mb_sites:
 
 
 rule angsd_index_random100Mb_sites:
+    """
+    Index randomly-selected sites for use with ANGSD
+    """
     input:
         rules.select_random100Mb_sites.output
     output:
@@ -103,6 +109,9 @@ rule angsd_index_random100Mb_sites:
         """
 
 rule angsd_saf_random100Mb_byPopulation:
+    """
+    Estimate population-level SAFs for randomly-selected sites
+    """
     input:
         bams = rules.create_bam_list_by_city_and_population.output, 
         ref = rules.copy_ref.output,
@@ -150,7 +159,8 @@ for city, pop in zip(CITIES, POPULATIONS):
 
 rule angsd_estimate_joint_population_sfs_random100Mb:
     """
-    Estimated folded, two-dimensional SFS for each urban-rural population pairs using realSFS
+    Estimated folded, two-dimensional SFS for each urban-rural population pair using randomly-selected
+    sites.
     """
     input:
         safs = get_population_saf_files_random100Mb
@@ -174,7 +184,7 @@ rule angsd_estimate_joint_population_sfs_random100Mb:
 
 rule angsd_estimate_sfs_byPopulation_random100Mb:
     """
-    Estimate folded SFS separately for each population (i.e., 1D SFS) using realSFS. 
+    Estimate folded SFS separately for each population (i.e., 1D SFS) using realSFS with randomly-selected sites
     """
     input:
         saf = rules.angsd_saf_random100Mb_byPopulation.output.saf_idx

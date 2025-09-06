@@ -116,6 +116,9 @@ rule index_snps:
         """
 
 rule angsd_alleleCounts_freq_byPopulation:
+    """
+    Estimate allele counts and frequencies of SNPs in each population
+    """
     input:
         bams = rules.create_bam_list_by_city_and_population.output,
         sites = rules.create_sites_file.output,
