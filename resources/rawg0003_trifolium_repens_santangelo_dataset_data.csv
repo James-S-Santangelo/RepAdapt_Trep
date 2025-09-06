@@ -1,0 +1,68 @@
+﻿Section:,Identifiers,Publication,,,Record-level: Dataset ,,,,,,,,,,,,,,,,,,,,
+Description of each field:,"A unique identifier given to the dataset in the RepAdapt 
+project. Use the link below to look up your ID.
+
+Type: Text
+
+
+Comment(s): Look up your ID in the linked 
+spreadsheet. This term is not Darwin Core.","Abstract (or summary) associated with the 
+dataset.
+
+Type: Text
+
+
+
+Comment(s): This term is not Darwin Core.","Keywords associated with the dataset.
+
+Type: Text
+
+
+Comment(s): Recommended best practice is to 
+separate the values in a list with space vertical 
+bar space ( | ). This term in not Darwin Core.","Links or citations from any published 
+manuscripts, datasets, etc.
+
+Type: Text
+
+Comment(s): Recommended best practice is to 
+separate the values in a list with space vertical 
+bar space ( | ). This term is not Darwin Core.","The name (or acronym) in use by the 
+institution having custody of the object(s) 
+or information referred to in the record.
+
+Type: Text
+
+
+Comment(s):","Comments or notes about whether this data 
+comes from samples that are stored in a 
+collection, loaned from a collection, etc.
+
+Type: Text
+
+
+Comment(s): This term is not Darwin Core.","Any relevant permit information or comments.
+
+Type: Text
+
+
+
+
+Comment(s): This term is not Darwin Core.","Emails of people associated with the dataset.
+
+Type: Email
+
+
+Comment(s): Recommended best practice is to 
+separate the values in a list with space vertical 
+bar space ( | ). This term is not Darwin Core.",,,,,,,,,,,,,,,,,
+Controlled vocabulary:,https://docs.google.com/spreadsheets/d/1HEUQKbBVo8bhT4gF269A8Yz7Jq3OBOHwxYzcRB1fYWs/edit?gid=0#gid=0,,,,,,,,,,,,,,,,,,,,,,,,
+Relevent link(s):,,,,,http://rs.tdwg.org/dwc/terms/institutionCode,,,,,,,,,,,,,,,,,,,,
+Field name:,RepAdaptID,abstract,keywords,publishedMaterial,institutionCode,collectionRemarks,permitRemarks,people,,,,,,,,,,,,,,,,,
+Required?,REQUIRED,,,,,,REQUIRED,REQUIRED,,,,,,,,,,,,,,,,,
+YOUR DATA HERE:,rawg0003,"This pipeline analyses 1,992 white clover (Trifolium repens) samples from 26 cities around the world. From each city, we sampled between 5 and 10 plants (mean = 8.66) from each of 1 to 5 urban and rural populations (mean = 4.42). This pipeline includes the following analysis steps:
+
+Estimate allele frequencies at SNPs across all 1,992 samples
+For each SNP in (1), re-estimate allele counts and frequencies in each population of each city independently.
+For population from every city, estimate pi, Waterson's theta, and Tajima's D in 20 Kb windows across the genome.
+For each city, estimate pairwise urban-rural Hudson's Fst in 20 Kb windows across the genome. Done for all pairwise urban-rural population combinations.",white clover | urbanization | wgs,https://onlinelibrary.wiley.com/doi/10.1111/mec.17311 | https://www.science.org/doi/10.1126/science.abk0989 | https://www.nature.com/articles/s41559-025-02751-2,UofT,,Permits Not Required,marc.johnson@utoronto.ca | james.santangelo@berkeley.edu | pbattlay@gmail.com | kathryn.hodgins@monash.edu,,,,,,,,,,,,,,,,,
