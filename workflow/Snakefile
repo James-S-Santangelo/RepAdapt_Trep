@@ -61,7 +61,7 @@ for i, city in enumerate(CITIES):
     else:
         CITIES_POP_DICT[city]['rural'].append(POPULATIONS[i])
 
-print(CITIES_POP_DICT)
+# print(CITIES_POP_DICT)
 
 POPULATION_POP_COMBS_DICT = { f'{city}' : [] for city in CITIES }
 for city in list(set(CITIES)):
@@ -100,6 +100,7 @@ localrules:
     create_bam_list_all_samples,
     create_bam_list_by_city_and_population,
     create_sites_file,
+    select_random100Mb_sites,
     index_snps,
     angsd_sweeps_fst_thetas_done,
     angsd_gea_allele_frequencies_done

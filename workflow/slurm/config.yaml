@@ -5,7 +5,7 @@ default-resources:
   - runtime=60
   - slurm_account="def-nessrobe_cpu" 
 latency-wait: 60
-jobs: 200
+jobs: 400
 retries: 1
 local-cores: 1
 scheduler: greedy
