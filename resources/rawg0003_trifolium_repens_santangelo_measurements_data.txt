@@ -1,0 +1,47 @@
+Section:	Identifiers		YOUR Trait 1	YOUR Trait 2	Record-level: Measurement
+Description of each field:	"A unique identifier given to the entry in this 
+metadata project.
+
+Type: Text
+
+Comment(s): Look up your ID in the linked 
+spreadsheet. This term should match what 
+is in the sample data set. This term is not 
+Darwin Core."	"A unique identifier given to the sample.
+
+Type: Text
+
+Comment(s): Recommended best 
+practice is to use a persistent, 
+globally unique identifier. This data 
+should match what is in the sample 
+data set. This term is not Darwin Core."	"YOUR definition of the described trait. 
+Include units in this definition.
+
+Type: YOUR data type
+
+Comment(s): Recommended to include 
+a link or figure citation from a peer 
+reviewed scientific paper to define the 
+trait. This term is not Darwin Core."	"YOUR definition of the described trait. 
+Include units in this definition.
+
+Type: YOUR data type
+
+Comment(s): Recommended to include 
+a link or figure citation from a peer 
+reviewed scientific paper to define the 
+trait. This term is not Darwin Core."	"Comments or notes about the measurement 
+data. Include other relevent data here.
+
+Type: Text
+
+
+
+
+Comment(s): This term is not Darwin Core."
+Controlled vocabulary:	https://docs.google.com/spreadsheets/d/1HEUQKbBVo8bhT4gF269A8Yz7Jq3OBOHwxYzcRB1fYWs/edit?gid=0#gid=0		YOUR controlled vocabulary.	YOUR controlled vocabulary.	
+Relevent link(s):			YOUR relevent link(s).	YOUR relevent link(s).	
+REQUIRED?	REQUIRED	REQUIRED	REQUIRED		
+Field name:	RepAdaptID	sampleID	YOUR_trait1_units	YOUR_trait2_units	measurementRemarks
+YOUR DATA HERE:	rawg0003	NA	NA	NA	NA
